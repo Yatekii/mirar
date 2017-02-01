@@ -2,6 +2,7 @@
 name = "mirar"
 version = "0.1.0"
 dependencies = [
+ "hyper 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "router 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 0.9.5 (registry+https://github.com/rust-lang/crates.io-index)",
