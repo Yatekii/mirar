@@ -4,7 +4,6 @@ extern crate serde_json;
 use respond;
 
 use self::hyper::{
-    client,
     Client,
     status
 };
@@ -33,18 +32,14 @@ pub struct Register {
 pub fn issue(url: String, kind: Kind, data: &Register) -> Result<respond::register::Register, status::StatusCode> {
     let client = Client::new();
     let assembled_url = format!(
-        "{}/register/{}",
-        url,
-        match kind{
-            self::Kind::Guest => "guest",
-            self::Kind::User => "user",
-        }
+        "http://{}/register",
+        url
     );
-    let mut request_builder = client.post(
-        &assembled_url
-    );
+    println!("{}", assembled_url);
+    let body;
+    let mut request_builder = client.post(&assembled_url);
 
-    let body = serde_json::to_string(data).unwrap();
+    body = serde_json::to_string(data).unwrap();
     request_builder = request_builder.body(&body);
     
     let response = request_builder.send();
@@ -56,12 +51,12 @@ pub fn issue(url: String, kind: Kind, data: &Register) -> Result<respond::regist
                     v.read_to_string(&mut body).unwrap();
                     match serde_json::from_str(&body) {
                         Ok(v) => Ok(v),
-                        _ => Err(status::StatusCode::Unregistered(0)),
+                        Err(v) => {println!("{}", v); Err(status::StatusCode::Unregistered(0))},
                     }
                 },
-                _ => Err(v.status.clone()),
+                _ => Err(v.status),
             }
         },
-        _ => Err(status::StatusCode::Unregistered(0))
+        Err(v) => Err(status::StatusCode::Unregistered(0)),
     }
 }
