@@ -44,15 +44,32 @@ fn main() {
                                 _ => mirar::register::Kind::Guest,
                             };
                         }
-                    }
-                    _ => {}
+                    },
+                    Err(args) => {
+                        match args {
+                            urlencoded::UrlDecodingError::EmptyQuery => {
+
+                            },
+                            _ => {
+                                let payload = mirar::Error::Matrix{
+                                    rest_errorcode: 400,
+                                    errorcode: "M_BROKEN_QUERY".into(),
+                                    error: "QUERY could not be decoded".into()
+                                };
+                                return Ok(iron::Response::with((iron::status::BadRequest, serde_json::to_string(&payload).unwrap())))
+                            }
+                        }
+                    },
                 };
+
+                let _ = kind;
 
                 let mut payload = String::new();
                 let _ = request.body.read_to_string(&mut payload);
                 let request: Result<mirar::register::Request, serde_json::error::Error> = serde_json::from_str(payload.as_str());
                 match request {
                     Ok(v) => {
+                        let _ = v;
                         let response = mirar::register::Response {
                             access_token: "YOLO".into(),
                             home_server: "darkchannel.net".into(),
@@ -92,7 +109,7 @@ fn main() {
                 Ok(v) => {println!("{}", v.user_id)},
                 Err(v) => {
                     match v {
-                        mirar::Error::Matrix { error } => println!("{}", error.error),
+                        mirar::Error::Matrix { rest_errorcode: _, errorcode: _, error } => println!("{}", error),
                         _ => {},
                     };
                 }

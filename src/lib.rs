@@ -8,11 +8,6 @@ pub mod register;
 
 extern crate hyper;
 
-use self::hyper::{
-    Client,
-    status
-};
-
 /* * * * * * * * * * * * * * * * * * * *
  * T Y P E S
  */
@@ -30,7 +25,8 @@ pub enum Error {
 }
 
 pub trait Request {
-    fn issue<T, R>(&self, url: String, args: T) -> Result<R, Error>;
+    type R: Response;
+    fn issue<T>(&self, url: String, args: T) -> Result<Self::R, Error>;
 }
 
 pub trait Response {

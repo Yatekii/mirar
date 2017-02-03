@@ -6,8 +6,7 @@ extern crate hyper;
 extern crate serde_json;
 
 use self::hyper::{
-    Client,
-    status
+    Client
 };
 use std::io::Read;
 
@@ -36,7 +35,7 @@ pub struct Request {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct KEK {
+pub struct Response {
     pub access_token: String,
     pub home_server: String,
     pub user_id: String,
@@ -48,7 +47,9 @@ pub struct KEK {
  */
 
 impl super::Request for Request {
-    fn issue<T, KEK>(&self, url: String, args: T) -> Result<KEK, super::Error> {
+    type R = Response;
+    fn issue<T>(&self, url: String, args: T) -> Result<Self::R, super::Error> {
+        let _ = args;
         let client = Client::new();
         let assembled_url = format!(
             "http://{}/register",
@@ -70,7 +71,7 @@ impl super::Request for Request {
                         v.read_to_string(&mut body).unwrap();
                         match serde_json::from_str(&body) {
                             Ok(v) => Ok(v),
-                            Err(v) => {
+                            Err(_) => {
                                 Err(super::Error::Query)
                             },
                         }
@@ -79,7 +80,7 @@ impl super::Request for Request {
                         v.read_to_string(&mut body).unwrap();
                         match serde_json::from_str(&body) {
                             Ok(v) => Err(v),
-                            Err(v) => {
+                            Err(_) => {
                                 Err(super::Error::Query)
                             },
                         }
@@ -100,7 +101,7 @@ impl super::Request for Request {
     }
 }
 
-impl super::Response for KEK {
+impl super::Response for Response {
      fn is_valid() -> bool {
          // TODO: implement
          return true;
