@@ -15,6 +15,8 @@ use std::io::Read;
 use iron::prelude::*;
 use urlencoded::UrlEncodedQuery;
 
+use mirar::Request;
+
 const URL: &'static str = "localhost:8008";
 
 fn main() {
@@ -38,8 +40,8 @@ fn main() {
                     Ok(args) => {
                         if args.contains_key("kind"){
                             kind = match args.get("kind") {
-                                Some(v) => {println!("{}", v[0]); mirar::request::register::Kind::User},
-                                _ => mirar::request::register::Kind::Guest,
+                                Some(v) => {println!("{}", v[0]); mirar::register::Kind::User},
+                                _ => mirar::register::Kind::Guest,
                             };
                         }
                     }
@@ -48,10 +50,10 @@ fn main() {
 
                 let mut payload = String::new();
                 let _ = request.body.read_to_string(&mut payload);
-                let request: Result<mirar::request::register::Register, serde_json::error::Error> = serde_json::from_str(payload.as_str());
+                let request: Result<mirar::register::Request, serde_json::error::Error> = serde_json::from_str(payload.as_str());
                 match request {
                     Ok(v) => {
-                        let response = mirar::respond::register::Register {
+                        let response = mirar::register::Response {
                             access_token: "YOLO".into(),
                             home_server: "darkchannel.net".into(),
                             user_id: "yatekii".into(),
@@ -62,7 +64,11 @@ fn main() {
                         Ok(iron::Response::with((iron::status::Ok, body)))
                     },
                     _ => {
-                        let payload = mirar::Error {errorcode: "M_BROKEN_QUERY".into(), error: "JSON could not be decoded".into()};
+                        let payload = mirar::Error::Matrix{
+                            rest_errorcode: 400,
+                            errorcode: "M_BROKEN_QUERY".into(),
+                            error: "JSON could not be decoded".into()
+                        };
                         Ok(iron::Response::with((iron::status::BadRequest, serde_json::to_string(&payload).unwrap())))
                     }
                 }
@@ -72,19 +78,24 @@ fn main() {
             iron::Iron::new(router).http(URL).unwrap();
         }
         "c" => {
-            let reg = mirar::request::register::Register {
+            let reg = mirar::register::Request {
                 username: "KEK".to_string(),
                 bind_email: false,
                 password: "YOLO".to_string(),
-                auth: mirar::request::register::Auth {
+                auth: mirar::register::Auth {
                     session: "FOO".to_string(),
                     typ: "bar".to_string()
                 },
             };
 
-            match mirar::request::register::issue(URL.to_string(), mirar::request::register::Kind::Guest, &reg){
+            match reg.issue(URL.to_string(), mirar::register::Kind::Guest){
                 Ok(v) => {println!("{}", v.user_id)},
-                Err(v) => {println!("{}", v)},
+                Err(v) => {
+                    match v {
+                        mirar::Error::Matrix { error } => println!("{}", error.error),
+                        _ => {},
+                    };
+                }
             };
 
             let serialized = serde_json::to_string(&reg).unwrap();
