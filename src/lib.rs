@@ -26,9 +26,19 @@ pub enum Error {
 
 pub trait Request {
     type R: Response;
-    fn issue<T>(&self, url: String, args: T) -> Result<Self::R, Error>;
+    type A: Arguments;
+    fn issue(&self, url: String, args: Self::A) -> Result<Self::R, Error>;
 }
 
 pub trait Response {
     fn is_valid() -> bool;
+}
+
+pub struct Query<A: Arguments, R: Request> {
+    arguments: A,
+    request: R,
+}
+
+pub trait Arguments {
+
 }

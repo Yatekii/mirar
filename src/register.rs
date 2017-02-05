@@ -27,15 +27,16 @@ pub struct Auth {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Request {
+pub struct Body {
     pub username: String,
     pub bind_email: bool,
     pub password: String,
     pub auth: Auth,
+    pub response: Response,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Response {
+pub struct Body {
     pub access_token: String,
     pub home_server: String,
     pub user_id: String,
@@ -48,19 +49,8 @@ pub struct Response {
 
 impl super::Request for Request {
     type R = Response;
-    fn issue<T>(&self, url: String, args: T) -> Result<Self::R, super::Error> {
-        let _ = args;
-        let client = Client::new();
-        let assembled_url = format!(
-            "http://{}/register",
-            url
-        );
-        println!("{}", assembled_url);
-        let body;
-        let mut request_builder = client.post(&assembled_url);
-
-        body = serde_json::to_string(self).unwrap();
-        request_builder = request_builder.body(&body);
+    type A = Kind;
+    fn issue(&self, url: String, args: Self::A) -> Result<Self::R, super::Error> {
         
         let response = request_builder.send();
         match response {
@@ -99,6 +89,25 @@ impl super::Request for Request {
             },
         }
     }
+
+    fn build(){
+        let client = Client::new();
+        let assembled_url = format!(
+            "http://{}/register&kind={}",
+            url,
+            match args { Kind::Guest => "guest", Kind::User => "user" },
+        );
+        println!("{}", assembled_url);
+        let body;
+        let mut request_builder = client.post(&assembled_url);
+
+        body = serde_json::to_string(self).unwrap();
+        request_builder = request_builder.body(&body);
+    }
+
+    fn issue(){
+
+    }
 }
 
 impl super::Response for Response {
@@ -106,4 +115,8 @@ impl super::Response for Response {
          // TODO: implement
          return true;
      }
+}
+
+impl super::Arguments for Kind {
+
 }
