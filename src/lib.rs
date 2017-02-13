@@ -24,17 +24,26 @@ pub enum Error {
     Query,
 }
 
+/*
+ * Request is the base Trait that all API endpoint requests implement
+ */
 pub trait Request {
     type R: Response;
     type A: Arguments;
     fn issue(&self, url: String, args: Self::A) -> Result<Self::R, Error>;
 }
 
+/*
+ * Request is the base Trait that all API endpoint responses implement
+ */
 pub trait Response {
     fn is_valid() -> bool;
 }
 
+
 pub struct Query<A: Arguments, R: Request> {
+    url: String,
+    type: 
     arguments: A,
     request: R,
 }
