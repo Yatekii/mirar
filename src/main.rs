@@ -16,8 +16,8 @@ use std::collections::HashMap;
 use iron::prelude::*;
 extern crate serde_urlencoded;
 
-use mirar::{ Request, RequestType, Status, QueryKeys, QueryValues };
-use mirar::register::{ ResponseBody, RequestBody, ErrorResponseBody, Auth };
+use mirar::{ Request, RequestType, Status };
+use mirar::register::{ ResponseBody, RequestBody, ErrorResponseBody, Auth, QueryKey, QueryValue };
 
 const URL: &'static str = "localhost:8008";
 
@@ -39,16 +39,16 @@ fn main() {
                 println!("Got /register request.");
                 let kind;
                 let url = request.url.to_string();
-                let mut args: Result<HashMap<QueryKeys, QueryValues>, serde_urlencoded::de::Error>;
+                let mut args: Result<HashMap<QueryKey, QueryValue>, serde_urlencoded::de::Error>;
                 let args_split: Vec<&str> = (&*url).split("&").collect();
                 if args_split.len() > 1 {
                     args = serde_urlencoded::from_str(args_split[1]);
                     match args {
                         Ok(v) => {
-                            if v.contains_key(&QueryKeys::Kind){
-                                kind = match v.get(&QueryKeys::Kind) {
-                                    Some(v) => { println!("{}", "USER"); QueryValues::User },
-                                    _ => QueryValues::Guest,
+                            if v.contains_key(&QueryKey::kind){
+                                kind = match v.get(&QueryKey::kind) {
+                                    Some(v) => { println!("{}", "USER"); QueryValue::user },
+                                    _ => QueryValue::guest,
                                 };
                             }
                         },
@@ -97,7 +97,7 @@ fn main() {
         }
         "c" => {
             let mut args = HashMap::new();
-            args.insert(QueryKeys::Kind, QueryValues::User);
+            args.insert(QueryKey::Kind, QueryValue::User);
             let mut reg = Request {
                 url: "register".into(),
                 request_type: RequestType::POST,
