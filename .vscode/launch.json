@@ -6,7 +6,7 @@
             "request": "launch",
             "name": "Debug",
             "program": "${workspaceRoot}/target/debug/mirar",
-            "args": ["s"],
+            "args": ["c"],
             "cwd": "${workspaceRoot}"
         }
     ]
